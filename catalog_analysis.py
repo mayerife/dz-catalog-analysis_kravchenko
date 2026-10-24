@@ -44,11 +44,6 @@ def duration_in_hours(minutes):
     mins = minutes % 60
     return f"{hours}ч {mins}м"
 
-# testing task 1
-# print(average_rating(movies))
-# print(catalog_age_stats(movies))
-# print(duration_in_hours(182))
-
 
 # TASK 2
 def rating_tier(rating):
@@ -66,22 +61,25 @@ def decade_label(year):
     match year:
         case _ if year > 2020:
             return "новые"
-        case _ if 2015 <= year <=2020:
+        case _ if 2015 <= year <= 2020:
             return "недавние"
         case _ if year < 2015:
             return "старые"
 
 
 # TASK 3
+print("NOT comedy movies:")
 for movie in movies:
     if "comedy" in movie["genres"]:
         continue
     print(movie["title"])
 
 i = 0
+first_high_rated = ""
 while i < len(movies):
     if movies[i]["rating"] > 9.0:
-        print(movies[i]["title"])
+        first_high_rated = movies[i]  # сохраняю в переменную, т.к. по заданию
+        # не понятно, надо ли выводить его
         break
     i += 1
 
@@ -110,7 +108,8 @@ def make_slug(title):
 
 
 def format_report_line(movie):
-    return f'"{movie["title"]}" ({movie["year"]}) — {movie["rating"]}/10, ' \
+    return f'"{normalize_title(movie["title"])}" ' \
+           f'({movie["year"]}) — {movie["rating"]}/10, ' \
            f'{duration_in_hours(movie["duration_min"])}, ' \
            f'жанры: {", ".join(sorted(movie["genres"]))}'
 
@@ -118,12 +117,13 @@ def format_report_line(movie):
 # TASK 5
 def titles_sorted_by_rating(movies):
     sorted_movies = sorted(movies, key=lambda movie: movie["rating"], reverse=True)
-    return [movie["title"] for movie in sorted_movies]
+    return [normalize_title(movie["title"]) for movie in sorted_movies]
 
 
 def top_n_by_rating(movies, n=3):
     sorted_movies = sorted(movies, key=lambda movie: movie["rating"], reverse=True)
-    return [(movie["title"], movie["rating"]) for movie in sorted_movies[:n]]
+    return [(normalize_title(movie["title"]), movie["rating"])
+            for movie in sorted_movies[:n]]
 
 
 # TASK 6
@@ -139,14 +139,16 @@ def actor_filmography(movies):
     dict_actors = {}
     for movie in movies:
         for actor in movie["actors"]:
-            dict_actors[actor] = dict_actors.get(actor, 0) + 1
+            if actor not in dict_actors:
+                dict_actors[actor] = []
+            dict_actors[actor].append(normalize_title(movie["title"]))
     return dict_actors
 
 
-dict_upper_avg = {movie["title"]: movie["rating"] for movie in movies if movie["rating"]
+dict_upper_avg = {normalize_title(movie["title"]): movie["rating"]
+                  for movie in movies if movie["rating"]
                   > average_rating(movies)}
 
-print(dict_upper_avg)
 
 # TASK 7
 def all_genres(movies):
@@ -180,6 +182,28 @@ def iter_high_rated(movies, min_rating=8.0):
 for movie in iter_high_rated(movies):
     print(format_report_line(movie))
 
-print(sum(m["duration_min"] for m in movies if m["rating"] > 7))
+sum(m["duration_min"] for m in movies if m["rating"] > 7)
 
 
+# TASK 9
+def build_report(movies):
+    print("\nОТЧЕТ ПО КАТАЛОГУ")
+    print(f"Средний рейтинг: {average_rating(movies)}")
+    print(f"Средний возраст фильмов: {catalog_age_stats(movies)[2]}\n")
+    print("Топ-3 фильма:")
+    top_titles = titles_sorted_by_rating(movies)[:3]
+    for title in top_titles:
+        for movie in movies:
+            if normalize_title(movie["title"]) == title:
+                print("  " + format_report_line(movie))
+                break
+
+    print("\nФильмов по жанрам:")
+    genres = count_by_genre(movies)
+    for genre in sorted(genres, key=genres.get, reverse=True):
+        print(f'  {genre} — {genres[genre]}')
+
+    print("\nВсе жанры каталога: " + ", ".join(sorted(all_genres(movies))))
+
+
+build_report(movies)
