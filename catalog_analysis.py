@@ -32,7 +32,8 @@ def average_rating(movies):
 def catalog_age_stats(movies, current_year=2026):
     oldest = current_year - min(movie["year"] for movie in movies)
     newest = current_year - max(movie["year"] for movie in movies)
-    avg_age = math.ceil(sum(current_year - movie["year"] for movie in movies) / len(movies))
+    avg_age = math.ceil(sum(current_year - movie["year"] for movie in movies)
+                        / len(movies))
     return (oldest, newest, avg_age)
 
 
@@ -45,3 +46,24 @@ def duration_in_hours(minutes):
 # print(average_rating(movies))
 # print(catalog_age_stats(movies))
 # print(duration_in_hours(182))
+
+
+def rating_tier(rating):
+    if rating >= 9:
+        return "шедевр"
+    elif rating >= 7:
+        return "хорошо"
+    elif rating >= 5:
+        return "средне"
+    else:
+        return "слабо" if rating >= 0 else "некорректная оценка"
+
+
+def decade_label(year):
+    match year:
+        case _ if year > 2020:
+            return "новые"
+        case _ if 2015 <= year <=2020:
+            return "недавние"
+        case _ if year < 2015:
+            return "старые"
